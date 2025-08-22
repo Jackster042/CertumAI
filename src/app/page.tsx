@@ -1,9 +1,10 @@
-import React from "react";
+import { SignInButton, UserButton } from "@clerk/nextjs";
 
-type Props = {};
-
-const page = (props: Props) => {
-  return <div>Hello Page</div>;
-};
-
-export default page;
+export default function HomePage() {
+  return (
+    <>
+      <SignInButton />
+      <UserButton />
+    </>
+  );
+}
