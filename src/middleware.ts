@@ -1,11 +1,11 @@
 import arcjet, { shield, detectBot, slidingWindow } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { env } from "./app/data/env/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)"]);
 
 const arj = arcjet({
-  // TODO: Add type safety for env files
-  key: process.env.ARCJET_KEY!,
+  key: env.ARCJET_KEY!,
   rules: [
     // Shield protects your app from common attacks e.g. SQL injection
     shield({ mode: "LIVE" }),
