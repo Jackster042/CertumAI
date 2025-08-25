@@ -6,7 +6,7 @@ export default async function OnboardingPage() {
   const { userId, user } = await getCurrentUser({ allData: true });
 
   if (userId == null) return redirect("/");
-  //   if (user != null) return redirect("/app");
+  if (user != null) return redirect("/app");
 
   return (
     <>
