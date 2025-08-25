@@ -40,4 +40,6 @@ export async function POST(request: NextRequest) {
   }
 
   return new Response("Webhook received", { status: 200 });
+
+  // return new Response("ok", { status: 200 });
 }
