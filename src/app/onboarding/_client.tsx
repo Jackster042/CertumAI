@@ -4,7 +4,6 @@ import { getUser } from "@/features/users/actions";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { set } from "zod/v4";
 
 export function OnboardingClient({ userId }: { userId: string }) {
   const router = useRouter();
@@ -23,9 +22,5 @@ export function OnboardingClient({ userId }: { userId: string }) {
     };
   }, [userId, router]);
 
-  return (
-    <>
-      <Loader2Icon className="animate-spin size-24" />
-    </>
-  );
+  return <Loader2Icon className="animate-spin size-24" />;
 }
