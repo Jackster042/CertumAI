@@ -89,7 +89,7 @@ export function JobInfoForm({
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => field.onChange(e.target.value || null)}
                   />
                 </FormControl>
                 <FormDescription>
