@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ArrowRightIcon } from "lucide-react";
+import { Skeleton } from "@/components/Skeleton";
 
 const options = [
   {
@@ -74,7 +75,7 @@ export default async function JobInfoPage({
             <h1 className="text-3xl md:text-4xl">
               <SuspendedItem
                 item={Promise.resolve(jobInfo)}
-                fallback="Loading..."
+                fallback={<Skeleton className="w-48" />}
                 result={(j) => j.name}
               />
             </h1>
@@ -82,7 +83,7 @@ export default async function JobInfoPage({
             <div className="flex gap-2">
               <SuspendedItem
                 item={Promise.resolve(jobInfo)}
-                fallback="Loading..."
+                fallback={<Skeleton className="w-12" />}
                 result={(j) => (
                   <Badge variant="secondary">
                     {formatExperienceLevel(j.experienceLevel)}
@@ -92,7 +93,7 @@ export default async function JobInfoPage({
 
               <SuspendedItem
                 item={Promise.resolve(jobInfo)}
-                fallback="Loading..."
+                fallback={null}
                 result={(j) =>
                   j.title && <Badge variant="secondary">{j.title}</Badge>
                 }
