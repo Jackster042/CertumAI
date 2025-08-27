@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { experienceLevels, JobInfoTable } from "@/drizzle/schema/jobInfo";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -23,21 +22,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { jobInfoSchema } from "../schemas";
-// import { formatExperienceLevel } from "../lib/formatters";
-// import { createJobInfo, updateJobInfo } from "../actions";
+import { createJobInfo, updateJobInfo } from "../actions";
 import { toast } from "sonner";
 import { LoadingSwap } from "@/components/ui/loading-swap";
+import { experienceLevels, JobInfoTable } from "@/drizzle/schema";
+import { jobInfoSchema } from "../schemas";
+import { formatExperienceLevel } from "../lib/formatters";
 
-export function JobInfoForm() {
-  const form = useForm();
-  async function onSubmit(data: any) {
-    console.log(data);
+type JobInfoFormData = z.infer<typeof jobInfoSchema>;
+
+export function JobInfoForm({
+  jobInfo,
+}: {
+  jobInfo?: Pick<
+    typeof JobInfoTable.$inferSelect,
+    "id" | "name" | "title" | "description" | "experienceLevel"
+  >;
+}) {
+  const form = useForm<JobInfoFormData>({
+    resolver: zodResolver(jobInfoSchema),
+    defaultValues: jobInfo ?? {
+      name: "",
+      title: null,
+      description: "",
+      experienceLevel: "junior",
+    },
+  });
+  async function onSubmit(values: JobInfoFormData) {
+    const action = jobInfo
+      ? updateJobInfo.bind(null, jobInfo.id)
+      : createJobInfo;
+
+    const res = await action(values);
+
+    if (res.error) toast.error(res.message);
   }
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="name"
@@ -61,9 +84,13 @@ export function JobInfoForm() {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>Job Title</FormLabel>
                 <FormControl>
-                  <Input {...field} value={""} onChange={() => {}} />
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
                 </FormControl>
                 <FormDescription>
                   Optional. Only enter if there is a specific job title you are
@@ -89,7 +116,7 @@ export function JobInfoForm() {
                   <SelectContent>
                     {experienceLevels.map((level) => (
                       <SelectItem key={level} value={level}>
-                        {/* {formatExperienceLevel(level)} */}
+                        {formatExperienceLevel(level)}
                       </SelectItem>
                     ))}
                   </SelectContent>
