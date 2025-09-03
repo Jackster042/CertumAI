@@ -19,7 +19,6 @@ export default async function InterviewsPage({
   params: Promise<{ jobInfoId: string }>;
 }) {
   const { jobInfoId } = await params;
-  //   console.log(jobInfoId, "jobInfoId from params");
   return (
     <div className="container py-4 gap-4 h-screen-header flex flex-col items-start">
       <JobInfoBackLink jobInfoId={jobInfoId} />

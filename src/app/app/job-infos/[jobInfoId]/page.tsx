@@ -10,6 +10,7 @@ import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { notFound } from "next/navigation";
 import { formatExperienceLevel } from "@/features/jobInfos/lib/formatters";
 import Link from "next/link";
+import { fetchAccessToken } from "hume";
 import {
   Card,
   CardContent,
@@ -19,6 +20,9 @@ import {
 } from "@/components/ui/card";
 import { ArrowRightIcon } from "lucide-react";
 import { Skeleton } from "@/components/Skeleton";
+import { env } from "@/app/data/env/server";
+import { VoiceProvider } from "@humeai/voice-react";
+import { StartCall } from "./interviews/new/_StartCall";
 
 const options = [
   {
@@ -62,8 +66,6 @@ export default async function JobInfoPage({
       return jobInfo;
     }
   );
-
-  //   console.log(jobInfo, "JOB INFO FROM DB+");
 
   return (
     <div className="container my-4 space-y-4">
