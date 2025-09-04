@@ -1,16 +1,20 @@
-import { env } from "@/app/data/env/server";
-import { db } from "@/drizzle/db";
-import { JobInfoTable } from "@/drizzle/schema";
-import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
-import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
-import { VoiceProvider } from "@humeai/voice-react";
-import { and, eq } from "drizzle-orm";
-import { fetchAccessToken } from "hume";
-import { Loader2Icon, Star } from "lucide-react";
-import { cacheTag } from "next/dist/server/use-cache/cache-tag";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { cacheTag } from "next/dist/server/use-cache/cache-tag";
+
+import { env } from "@/app/data/env/server";
+import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
+import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
+
+import { fetchAccessToken } from "hume";
+import { VoiceProvider } from "@humeai/voice-react";
+
+import { db } from "@/drizzle/db";
+import { and, eq } from "drizzle-orm";
+import { JobInfoTable } from "@/drizzle/schema";
+
 import { StartCall } from "./_StartCall";
+import { Loader2Icon } from "lucide-react";
 
 export default async function NewInterviewPage({
   params,
