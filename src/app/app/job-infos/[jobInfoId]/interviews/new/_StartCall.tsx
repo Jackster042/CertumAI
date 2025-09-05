@@ -8,7 +8,7 @@ import { errorToast } from "@/lib/errorToast";
 import { CondensedMessages } from "@/services/hume/components/CondensedMessages";
 import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages";
 import { useVoice, VoiceReadyState } from "@humeai/voice-react";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, MicIcon, MicOffIcon, PhoneOffIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export function StartCall({
@@ -77,13 +77,13 @@ export function StartCall({
   return (
     <div className="overflow-y-auto h-screen-reader flex flex-col-reverse">
       <div className="container flex py-6 flex-col items-center justify-end gap-4">
-        <h2>Controls</h2>
+        <Messages user={user} />
+        <Controls />
       </div>
     </div>
   );
 }
 
-// TODO
 function Messages({ user }: { user: { name: string; imageUrl: string } }) {
   const { messages, fft } = useVoice();
 
@@ -101,6 +101,55 @@ function Messages({ user }: { user: { name: string; imageUrl: string } }) {
   );
 }
 
-function Controls() {}
+function Controls() {
+  const { disconnect, isMuted, mute, unmute, micFft, callDurationTimestamp } =
+    useVoice();
 
-function FftVisualizer() {}
+  return (
+    <div className="flex items-center gap-5 rounded border px-5 py-2 w-fit sticky bottom-6 bg-background">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="-mx-3"
+        onClick={() => (isMuted ? unmute() : mute())}
+      >
+        {isMuted ? <MicOffIcon className="text-destructive" /> : <MicIcon />}
+      </Button>
+
+      <div className="self-stretch">
+        <FftVisualizer fft={micFft} />
+      </div>
+
+      <div className="text-sm text-muted-foreground tabular-nums">
+        {callDurationTimestamp}
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="-mx-3"
+        onClick={disconnect}
+      >
+        <PhoneOffIcon className="text-destructive" />
+        <span className="sr-only">End Call</span>
+      </Button>
+    </div>
+  );
+}
+
+function FftVisualizer({ fft }: { fft: number[] }) {
+  return (
+    <div className="flex gap-1 items-center h-full">
+      {fft.map((value, index) => {
+        const percent = (value / 4) * 100;
+        return (
+          <div
+            key={index}
+            className="min-h-0.5 bg-primary/75 w-0.5 rounded"
+            style={{ height: `${percent < 10 ? 0 : percent}%` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
