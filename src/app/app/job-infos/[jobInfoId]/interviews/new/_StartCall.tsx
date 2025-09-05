@@ -1,6 +1,6 @@
 "use client";
 
-import { env } from "@/app/data/env/server";
+import { env } from "@/app/data/env/client";
 import { Button } from "@/components/ui/button";
 import { JobInfoTable } from "@/drizzle/schema";
 import { createInterview } from "@/features/interviews/actions";

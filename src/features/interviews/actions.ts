@@ -1,3 +1,5 @@
+"use server";
+
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { canCreateInterview } from "./permissions";
 import { PLAN_LIMIT_MESSAGE, RATE_LIMIT_MESSAGE } from "@/lib/errorToast";
@@ -157,5 +159,6 @@ async function getInterview(id: string, userId: string) {
 
   cacheTag(getJobInfoIdTag(interview.jobInfo.id));
   if (interview.jobInfo.userId !== userId) return null;
+
   return interview;
 }
