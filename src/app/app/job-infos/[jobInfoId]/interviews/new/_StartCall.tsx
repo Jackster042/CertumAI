@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { JobInfoTable } from "@/drizzle/schema";
 import { createInterview } from "@/features/interviews/actions";
 import { errorToast } from "@/lib/errorToast";
+import { CondensedMessages } from "@/services/hume/components/CondensedMessages";
+import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages";
 import { useVoice, VoiceReadyState } from "@humeai/voice-react";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export function StartCall({
   jobInfo,
@@ -75,7 +77,6 @@ export function StartCall({
   return (
     <div className="overflow-y-auto h-screen-reader flex flex-col-reverse">
       <div className="container flex py-6 flex-col items-center justify-end gap-4">
-        <h2>Messages</h2>
         <h2>Controls</h2>
       </div>
     </div>
@@ -83,7 +84,22 @@ export function StartCall({
 }
 
 // TODO
-function Messages() {}
+function Messages({ user }: { user: { name: string; imageUrl: string } }) {
+  const { messages, fft } = useVoice();
+
+  const condensedMessages = useMemo(() => {
+    return condenseChatMessages(messages);
+  }, [messages]);
+
+  return (
+    <CondensedMessages
+      messages={condensedMessages}
+      user={user}
+      maxFft={Math.max(...fft)}
+      className="max-w-5xl"
+    />
+  );
+}
 
 function Controls() {}
 
