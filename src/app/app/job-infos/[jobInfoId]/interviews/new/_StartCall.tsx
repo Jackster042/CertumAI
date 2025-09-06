@@ -106,7 +106,7 @@ function Controls() {
     useVoice();
 
   return (
-    <div className="flex items-center gap-5 rounded border px-5 py-2 w-fit sticky bottom-6 bg-background">
+    <div className="flex gap-5 rounded border px-5 py-2 w-fit sticky bottom-6 bg-background items-center">
       <Button
         variant="ghost"
         size="icon"
@@ -114,16 +114,14 @@ function Controls() {
         onClick={() => (isMuted ? unmute() : mute())}
       >
         {isMuted ? <MicOffIcon className="text-destructive" /> : <MicIcon />}
+        <span className="sr-only">{isMuted ? "Unmute" : "Mute"}</span>
       </Button>
-
       <div className="self-stretch">
         <FftVisualizer fft={micFft} />
       </div>
-
       <div className="text-sm text-muted-foreground tabular-nums">
         {callDurationTimestamp}
       </div>
-
       <Button
         variant="ghost"
         size="icon"
