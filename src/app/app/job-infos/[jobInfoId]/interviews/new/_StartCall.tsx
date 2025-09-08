@@ -4,7 +4,7 @@ import { env } from "@/app/data/env/client";
 import { Button } from "@/components/ui/button";
 import { JobInfoTable } from "@/drizzle/schema";
 import { createInterview } from "@/features/interviews/actions";
-import { updateInterview } from "@/features/interviews/db";
+import { updateInterview } from "@/features/interviews/actions";
 import { errorToast } from "@/lib/errorToast";
 import { CondensedMessages } from "@/services/hume/components/CondensedMessages";
 import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages";
@@ -40,6 +40,39 @@ export function StartCall({
   const durationRef = useRef(callDurationTimestamp);
   durationRef.current = callDurationTimestamp;
   const router = useRouter();
+
+  // Sync chat ID
+  useEffect(() => {
+    if (chatMetadata?.chatId == null || interviewId == null) {
+      return;
+    }
+    updateInterview(interviewId, { humeChatId: chatMetadata.chatId });
+  }, [chatMetadata?.chatId, interviewId]);
+
+  // Sync duration
+  useEffect(() => {
+    if (interviewId == null) return;
+    const intervalId = setInterval(() => {
+      if (durationRef.current == null) return;
+
+      updateInterview(interviewId, { duration: durationRef.current });
+    }, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [interviewId]);
+
+  // Disconnect
+  useEffect(() => {
+    if (readyState === VoiceReadyState.OPEN) return;
+    if (interviewId == null) {
+      return router.push(`/app/job-infos/${jobInfo.id}/interviews`);
+    }
+
+    if (durationRef.current != null) {
+      updateInterview(interviewId, { duration: durationRef.current });
+    }
+    router.push(`/app/job-infos/${jobInfo.id}/interviews/${interviewId}`);
+  }, [interviewId, readyState, router, jobInfo.id]);
 
   if (readyState === VoiceReadyState.IDLE) {
     return (
@@ -84,39 +117,6 @@ export function StartCall({
       </div>
     );
   }
-
-  // Sync chat ID
-  useEffect(() => {
-    if (chatMetadata?.chatId == null || interviewId == null) return;
-    updateInterview(interviewId, { humeChatId: chatMetadata?.chatId });
-  }, [chatMetadata?.chatId, interviewId]);
-
-  // Sync duration
-  useEffect(() => {
-    if (interviewId == null) return;
-
-    const intervalId = setInterval(() => {
-      if (durationRef.current == null) return;
-      updateInterview(interviewId, {
-        duration: durationRef.current || "00:00:00",
-      });
-    }, 10000);
-
-    return () => clearInterval(intervalId);
-  }, [callDurationTimestamp]);
-
-  // Disconnect
-  useEffect(() => {
-    if (readyState !== VoiceReadyState.CLOSED) return;
-    if (interviewId == null) {
-      return router.push(`/app/job-infos/${jobInfo.id}/interviews`);
-    }
-
-    if (durationRef.current != null) {
-      updateInterview(interviewId, { duration: durationRef.current });
-    }
-    router.push(`/app/job-infos/${jobInfo.id}/interviews/${interviewId}`);
-  }, [interviewId, readyState, router, jobInfo.id]);
 
   return (
     <div className="overflow-y-auto h-screen-reader flex flex-col-reverse">

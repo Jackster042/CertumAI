@@ -75,7 +75,7 @@ export async function updateInterview(
   id: string,
   data: {
     humeChatId?: string;
-    duration: string;
+    duration?: string;
   }
 ) {
   const { userId } = await getCurrentUser();

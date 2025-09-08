@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Loader2, Loader2Icon, PlusIcon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
-import { getINterviewJobInfoTag } from "@/features/interviews/dbCache";
+import { getInterviewJobInfoTag } from "@/features/interviews/dbCache";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { InterviewTable } from "@/drizzle/schema";
@@ -74,7 +74,7 @@ async function SuspendedPage({ jobInfoId }: { jobInfoId: string }) {
 
 async function getInterviews(jobInfoId: string, userId: string) {
   "use cache";
-  cacheTag(getINterviewJobInfoTag(jobInfoId));
+  cacheTag(getInterviewJobInfoTag(jobInfoId));
   cacheTag(getJobInfoIdTag(jobInfoId));
 
   const data = await db.query.InterviewTable.findMany({

@@ -5,7 +5,7 @@ export function getInterviewGlobalTag() {
   return getGlobalTag("interviews");
 }
 
-export function getINterviewJobInfoTag(jobInfoId: string) {
+export function getInterviewJobInfoTag(jobInfoId: string) {
   return getJobInfoTag("interviews", jobInfoId);
 }
 
@@ -21,6 +21,6 @@ export function revalidateInterviewCache({
   jobInfoId: string;
 }) {
   revalidateTag(getInterviewGlobalTag());
-  revalidateTag(getINterviewJobInfoTag(jobInfoId));
+  revalidateTag(getInterviewJobInfoTag(jobInfoId));
   revalidateTag(getInterviewIdTag(id));
 }
