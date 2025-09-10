@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { generateInterviewFeedback } from "@/features/interviews/actions";
 import { Suspense } from "react";
 import { Loader2Icon } from "lucide-react";
+import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages";
+import { fetchChatMessages } from "@/services/hume/lib/api";
+import { CondensedMessages } from "@/services/hume/components/CondensedMessages";
 
 export default async function InterviewPage({
   params,
@@ -63,7 +66,9 @@ export default async function InterviewPage({
     jobInfo: { id: string; userId: string };
   };
 
-  console.log(currentUserData, "interview");
+  // TODO: CHECK HUME CHAT ID , AND WHERE IT SHOWS IN LOGS
+  // TODO: CREATE MORE CONSISTENT LOGS
+  console.log(interviewPromise, "interviewPromise");
 
   return (
     <div className="container my-4 space-y-4">
@@ -134,7 +139,23 @@ async function Messages({
 }: {
   interview: Promise<{ humeChatId: string | null }>;
 }) {
-  return null;
+  const { user, redirectToSignIn } = await getCurrentUser({ allData: true });
+  if (user == null) return redirectToSignIn();
+
+  const { humeChatId } = await interview;
+  if (humeChatId == null) return notFound();
+
+  const condensedMessages = condenseChatMessages(
+    await fetchChatMessages(humeChatId)
+  );
+
+  return (
+    <CondensedMessages
+      messages={condensedMessages}
+      user={user}
+      className="mx-auto max-w-5xl"
+    />
+  );
 }
 
 async function getInterview(id: string, userId: string) {
