@@ -9,7 +9,6 @@ import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
 import { formatDateTime } from "@/lib/formatDateTime";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { eq } from "drizzle-orm";
-import { duration } from "drizzle-orm/gel-core";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { notFound } from "next/navigation";
 import {
@@ -31,18 +30,40 @@ export default async function InterviewPage({
 }) {
   const { jobInfoId, interviewId } = await params;
 
-  const interview = await getCurrentUser().then(
-    async ({ userId, redirectToSignIn }) => {
-      if (userId == null) return redirectToSignIn();
+  // const interview = await getCurrentUser().then(
+  //   async ({ userId, redirectToSignIn }) => {
+  //     if (userId == null) return redirectToSignIn();
 
-      const interview = await getInterview(interviewId, userId!);
-      if (interview == null) return notFound();
+  //     const interview = await getInterview(interviewId, userId!);
+  //     if (interview == null) return notFound();
 
-      return interview;
+  //     return interview;
+  //   }
+  // );
+
+  const currentUserData = await getCurrentUser();
+  if (currentUserData.userId == null) return currentUserData.redirectToSignIn();
+  const userId = currentUserData.userId!;
+
+  const interviewPromise = getInterview(interviewId, userId).then(
+    (interviewData) => {
+      if (interviewData == null) return notFound();
+      return interviewData;
     }
   );
 
-  console.log(interview, "interview");
+  type InterviewType = {
+    duration: string;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    jobInfoId: string;
+    humeChatId: string | null;
+    feedback: string | null;
+    jobInfo: { id: string; userId: string };
+  };
+
+  console.log(currentUserData, "interview");
 
   return (
     <div className="container my-4 space-y-4">
@@ -55,15 +76,15 @@ export default async function InterviewPage({
           <div className="space-y-2 mb-6">
             <h1 className="text-3xl md:text-4xl">
               Interview:{" "}
-              <SuspendedItem
-                item={interview}
+              <SuspendedItem<InterviewType>
+                item={interviewPromise as Promise<InterviewType>}
                 fallback={<Skeleton className="w-48" />}
                 result={(i) => formatDateTime(i.createdAt)}
               />
             </h1>
             <p className="text-muted-foreground">
               <SuspendedItem
-                item={interview}
+                item={interviewPromise as Promise<InterviewType>}
                 fallback={<Skeleton className="w-48" />}
                 result={(i) => i.duration}
               />
@@ -72,7 +93,7 @@ export default async function InterviewPage({
 
           {/* GENERATE FEEDBACK */}
           <SuspendedItem
-            item={interview}
+            item={interviewPromise as Promise<InterviewType>}
             fallback={<SkeletonButton className="w-32" />}
             result={(i) =>
               i.feedback == null ? (
@@ -100,7 +121,7 @@ export default async function InterviewPage({
         <Suspense
           fallback={<Loader2Icon className="animate-spin m-auto size-24" />}
         >
-          <Messages interview={interview} />
+          <Messages interview={interviewPromise} />
         </Suspense>
       </div>
     </div>
