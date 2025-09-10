@@ -63,7 +63,7 @@ export function StartCall({
 
   // Disconnect
   useEffect(() => {
-    if (readyState === VoiceReadyState.OPEN) return;
+    if (readyState !== VoiceReadyState.CLOSED) return;
     if (interviewId == null) {
       return router.push(`/app/job-infos/${jobInfo.id}/interviews`);
     }

@@ -37,9 +37,10 @@ async function SuspendedPage({ jobInfoId }: { jobInfoId: string }) {
   if (userId == null) return redirectToSignIn();
 
   const interviews = await getInterviews(jobInfoId, userId);
-  console.log(interviews, "interviews from db");
-  if (interviews.length === 0)
-    redirect(`/app/job-infos/${jobInfoId}/interviews/new`);
+  console.log(interviews, "INTERVIEWS FROM db");
+  // if (interviews.length === 0) {
+  //   return redirect(`/app/job-infos/${jobInfoId}/interviews/new`);
+  // }
 
   return (
     <div className="space-y-6 w-full">
