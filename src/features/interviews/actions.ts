@@ -12,6 +12,7 @@ import { InterviewTable, JobInfoTable } from "@/drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { insertInterview, updateInterview as updateInterviewDb } from "./db";
 import { getInterviewIdTag } from "./dbCache";
+import { getAiInterviewFeedback } from "@/services/ai/interviews";
 
 const arj = arcjet({
   characteristics: ["userId"],
@@ -109,6 +110,7 @@ export async function generateInterviewFeedback(interviewId: string) {
   }
 
   const interview = await getInterview(interviewId, userId);
+  console.log(interview, "interview from GENERATE INTERVIEW FEEDBACK");
   if (interview == null) {
     return {
       error: true,
@@ -124,6 +126,7 @@ export async function generateInterviewFeedback(interviewId: string) {
   }
 
   //   TODO:  FINISH GENERATE INTERVIEW FUNCTION
+  const feedback = await getAiInterviewFeedback();
 
   return { error: false };
 }
