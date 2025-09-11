@@ -1,6 +1,6 @@
 import { JobInfoBackLink } from "@/features/jobInfos/components/JobInfoBackLink";
 import { Suspense } from "react";
-import { Loader2, Loader2Icon, PlusIcon } from "lucide-react";
+import { ArrowRightIcon, Loader2, Loader2Icon, PlusIcon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
 import { getInterviewJobInfoTag } from "@/features/interviews/dbCache";
@@ -11,7 +11,14 @@ import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatDateTime } from "@/lib/formatDateTime";
 
 export default async function InterviewsPage({
   params,
@@ -19,6 +26,8 @@ export default async function InterviewsPage({
   params: Promise<{ jobInfoId: string }>;
 }) {
   const { jobInfoId } = await params;
+
+  console.log(jobInfoId, "jobInfoId");
   return (
     <div className="container py-4 gap-4 h-screen-header flex flex-col items-start">
       <JobInfoBackLink jobInfoId={jobInfoId} />
@@ -38,9 +47,9 @@ async function SuspendedPage({ jobInfoId }: { jobInfoId: string }) {
 
   const interviews = await getInterviews(jobInfoId, userId);
   console.log(interviews, "INTERVIEWS FROM db");
-  // if (interviews.length === 0) {
-  //   return redirect(`/app/job-infos/${jobInfoId}/interviews/new`);
-  // }
+  if (interviews.length === 0) {
+    return redirect(`/app/job-infos/${jobInfoId}/interviews/new`);
+  }
 
   return (
     <div className="space-y-6 w-full">
@@ -68,6 +77,27 @@ async function SuspendedPage({ jobInfoId }: { jobInfoId: string }) {
         </Link>
 
         {/* RENDER INTERVIEWS HERE */}
+        {interviews.map((interview) => (
+          <Link
+            className="hover:scale-[1.02] transition-[transform_opacity]"
+            href={`/app/job-infos/${jobInfoId}/interviews/${interview.id}`}
+            key={interview.id}
+          >
+            <Card className="h-full">
+              <div className="flex items-center justify-between h-full">
+                <CardHeader className="gap-1 flex-grow">
+                  <CardTitle className="text-lg">
+                    {formatDateTime(interview.createdAt)}
+                  </CardTitle>
+                </CardHeader>
+                <CardDescription>{interview.duration}</CardDescription>
+                <CardContent>
+                  <ArrowRightIcon className="size-6" />
+                </CardContent>
+              </div>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -86,6 +116,8 @@ async function getInterviews(jobInfoId: string, userId: string) {
     with: { jobInfo: { columns: { userId: true } } },
     orderBy: desc(InterviewTable.updatedAt),
   });
+
+  console.log(data, "data from GET INTERVIEWS FROM DB");
 
   return data.filter((interview) => interview.jobInfo.userId === userId);
 }
