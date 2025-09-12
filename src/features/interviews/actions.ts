@@ -126,7 +126,22 @@ export async function generateInterviewFeedback(interviewId: string) {
   }
 
   //   TODO:  FINISH GENERATE INTERVIEW FUNCTION
-  const feedback = await getAiInterviewFeedback();
+  const feedback = await getAiInterviewFeedback({
+    humeChatId: interview.humeChatId,
+    jobInfo: interview.jobInfo,
+    userName: user.name,
+  });
+
+  console.log(feedback, "FEEDBACK FROM AI");
+
+  if (feedback == null) {
+    return {
+      error: true,
+      message: "Failed to generate feedback",
+    };
+  }
+
+  await updateInterviewDb(interviewId, { feedback });
 
   return { error: false };
 }
