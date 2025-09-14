@@ -2,6 +2,8 @@
 
 import { BackLink } from "@/components/BackLink";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { Button } from "@/components/ui/button";
+import { LoadingSwap } from "@/components/ui/loading-swap";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -9,8 +11,15 @@ import {
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { JobInfoTable } from "@/drizzle/schema";
+import {
+  JobInfoTable,
+  questionDifficulties,
+  QuestionDifficulty,
+} from "@/drizzle/schema";
+import { formatQuestionDifficulty } from "@/features/questions/formatters";
 import { useState } from "react";
+import { useCompletion } from "@ai-sdk/react";
+import { errorToast } from "@/lib/errorToast";
 
 type Status = "awaiting-answer" | "awaiting-difficulty" | "init";
 
@@ -19,22 +28,74 @@ export function NewQuestionClientPage({
 }: {
   jobInfo: Pick<typeof JobInfoTable.$inferSelect, "id" | "name" | "title">;
 }) {
-  const [status, setStatus] = useState<Status>("init");
+  const [status, setStatus] = useState<Status>("awaiting-answer");
   const [answer, setAnswer] = useState<string | null>(null);
 
   //   TODO: QUESTION & FEEDBACK
-  const question = null;
-  const feedback = null;
+
+  // THIS ALLOWS TO USE STREAMING
+  const {
+    complete: generateQuestion,
+    completion: question,
+    setCompletion: setQuestion,
+    isLoading: isGeneratingQuestion,
+    data,
+  } = useCompletion({
+    api: "/api/questions/generate-question",
+    onFinish: () => {
+      setStatus("awaiting-answer");
+    },
+    onError: (error) => {
+      errorToast(error.message);
+    },
+  });
+
+  const {
+    complete: generateFeedback,
+    completion: feedback,
+    setCompletion: setFeedback,
+    isLoading: isGeneratingFeedback,
+  } = useCompletion({
+    api: "/api/ai/questions/generate-feedback",
+    onFinish: () => {
+      setStatus("awaiting-difficulty");
+    },
+    onError: (error) => {
+      errorToast(error.message);
+    },
+  });
 
   return (
-    <div className="flex flex-col items-center h-screen-reader gap-4 w-full mx-auto flex-grow max-2-[2000px]">
+    <div className="flex flex-col items-center gap-4 w-full mx-w-[2000px] mx-auto flex-grow h-screen-header">
       <div className="container flex gap-4 mt-4 items-center justify-between">
         <div className="flex-grow basis-0">
           <BackLink href={`/app/job-infos/${jobInfo.id}`}>
             {jobInfo.name}
           </BackLink>
         </div>
-        <Controls />
+        <Controls
+          reset={() => {
+            setStatus("init");
+            setQuestion("");
+            setFeedback("");
+            setAnswer(null);
+          }}
+          status={status}
+          isLoading={isGeneratingQuestion || isGeneratingFeedback}
+          // TODO:  ADD QUESTION ID LATER
+          disableAnswerButton={answer == null || answer.trim() === ""}
+          generateQuestion={(difficulty) => {
+            setQuestion("");
+            setFeedback("");
+            setAnswer(null);
+            generateQuestion(difficulty, { body: { jobInfoId: jobInfo.id } });
+          }}
+          generateFeedback={() => {
+            if (answer == null || answer.trim() === "") return;
+            // TODO: GET QUESTION ID
+            answer?.trim(), { body: { questionId: null } };
+          }}
+        />
         <div className="flex-grow hidden md:block" />
       </div>
       <QuestionContainer
@@ -83,7 +144,7 @@ function QuestionContainer({
           {feedback && (
             <>
               <ResizableHandle withHandle />
-              <ResizablePanel id="feedback" defaultSize={25} minSize={5}>
+              <ResizablePanel id="feedback" defaultSize={75} minSize={5}>
                 <ScrollArea className="h-full min-w-48 *:h-full">
                   <MarkdownRenderer className="p-6">
                     {feedback}
@@ -111,11 +172,56 @@ function QuestionContainer({
   );
 }
 
-function Controls() {
+function Controls({
+  status,
+  isLoading,
+  disableAnswerButton,
+  generateQuestion,
+  generateFeedback,
+  reset,
+}: {
+  status: Status;
+  isLoading: boolean;
+  disableAnswerButton: boolean;
+  generateQuestion: (difficulty: QuestionDifficulty) => void;
+  generateFeedback: () => void;
+  reset: () => void;
+}) {
   return (
-    <div className="flex items-center gap-2">
-      <button className="bg btn-primary">Create</button>
-      <button className="bg btn-primary">Cancel</button>
+    <div className="flex gap-2">
+      {status === "awaiting-answer" ? (
+        <>
+          <Button
+            onClick={reset}
+            disabled={isLoading}
+            variant="outline"
+            size="sm"
+          >
+            <LoadingSwap isLoading={isLoading}>Skip</LoadingSwap>
+          </Button>
+          <Button
+            onClick={generateFeedback}
+            disabled={disableAnswerButton}
+            size="sm"
+          >
+            <LoadingSwap isLoading={isLoading}>Answer</LoadingSwap>
+          </Button>
+        </>
+      ) : (
+        questionDifficulties.map((difficulty) => (
+          <Button
+            key={difficulty}
+            disabled={isLoading}
+            onClick={() => generateQuestion(difficulty)}
+            size="sm"
+            className="cursor-pointer"
+          >
+            <LoadingSwap isLoading={isLoading}>
+              {formatQuestionDifficulty(difficulty)}
+            </LoadingSwap>
+          </Button>
+        ))
+      )}
     </div>
   );
 }

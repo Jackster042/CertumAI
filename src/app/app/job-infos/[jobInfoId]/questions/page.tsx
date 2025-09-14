@@ -20,13 +20,12 @@ export default async function QuestionsPage({
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center h-screen-reader">
+        <div className="h-screen-header flex items-center justify-center">
           <Loader2Icon className="animate-spin size-24" />
         </div>
       }
     >
       <SuspendedComponent jobInfoId={jobInfoId} />
-      {/* <h1>Hello</h1> */}
     </Suspense>
   );
 }
