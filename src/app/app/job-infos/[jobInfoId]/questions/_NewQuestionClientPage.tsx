@@ -28,8 +28,10 @@ export function NewQuestionClientPage({
 }: {
   jobInfo: Pick<typeof JobInfoTable.$inferSelect, "id" | "name" | "title">;
 }) {
-  const [status, setStatus] = useState<Status>("awaiting-answer");
+  const [status, setStatus] = useState<Status>("init");
   const [answer, setAnswer] = useState<string | null>(null);
+
+  const questionId = null;
 
   //   TODO: QUESTION & FEEDBACK
 
@@ -41,7 +43,7 @@ export function NewQuestionClientPage({
     isLoading: isGeneratingQuestion,
     data,
   } = useCompletion({
-    api: "/api/questions/generate-question",
+    api: "/api/ai/questions/generate-question",
     onFinish: () => {
       setStatus("awaiting-answer");
     },
@@ -65,6 +67,11 @@ export function NewQuestionClientPage({
     },
   });
 
+  console.log(status, "status");
+  console.log("QuestionContainer: question", question);
+  console.log("QuestionContainer: isGeneratingQuestion", isGeneratingQuestion);
+  console.log("QuestionContainer: status", status);
+
   return (
     <div className="flex flex-col items-center gap-4 w-full mx-w-[2000px] mx-auto flex-grow h-screen-header">
       <div className="container flex gap-4 mt-4 items-center justify-between">
@@ -83,7 +90,9 @@ export function NewQuestionClientPage({
           status={status}
           isLoading={isGeneratingQuestion || isGeneratingFeedback}
           // TODO:  ADD QUESTION ID LATER
-          disableAnswerButton={answer == null || answer.trim() === ""}
+          disableAnswerButton={
+            answer == null || answer.trim() === "" || questionId == null
+          }
           generateQuestion={(difficulty) => {
             setQuestion("");
             setFeedback("");
@@ -91,7 +100,8 @@ export function NewQuestionClientPage({
             generateQuestion(difficulty, { body: { jobInfoId: jobInfo.id } });
           }}
           generateFeedback={() => {
-            if (answer == null || answer.trim() === "") return;
+            if (answer == null || answer.trim() === "" || questionId == null)
+              return;
             // TODO: GET QUESTION ID
             answer?.trim(), { body: { questionId: null } };
           }}
@@ -128,16 +138,18 @@ function QuestionContainer({
         <ResizablePanelGroup direction="vertical" className="flex-grow">
           <ResizablePanel id="question" defaultSize={25} minSize={5}>
             <ScrollArea className="h-full min-w-48 *:h-full">
-              {status === "init" && question == null ? (
+              {/* Change the conditional rendering here */}
+              {question ? ( // If there's any question text, display it
+                <MarkdownRenderer className="p-6">{question}</MarkdownRenderer>
+              ) : status === "init" ? ( // If no question and status is 'init', show initial message
                 <p className="text-base md:text-lg flex items-center justify-center h-full p-6">
                   Get started by selecting a question difficulty above.
                 </p>
               ) : (
-                question && (
-                  <MarkdownRenderer className="p-6">
-                    {question}
-                  </MarkdownRenderer>
-                )
+                // You might want a loading spinner here while generating
+                <p className="text-base md:text-lg flex items-center justify-center h-full p-6">
+                  Generating question...
+                </p>
               )}
             </ScrollArea>
           </ResizablePanel>
