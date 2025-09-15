@@ -38,7 +38,7 @@ export function NewQuestionClientPage({
     completion: question,
     setCompletion: setQuestion,
     isLoading: isGeneratingQuestion,
-    data,
+    // data,
   } = useCompletion({
     api: "/api/ai/questions/generate-question",
     onFinish: () => {
