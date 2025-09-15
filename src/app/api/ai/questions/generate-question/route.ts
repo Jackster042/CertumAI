@@ -11,8 +11,10 @@ import { PLAN_LIMIT_MESSAGE } from "@/lib/errorToast";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { and, asc, eq } from "drizzle-orm";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
-import z from "zod";
+import { z } from "zod";
 import { generateAiQuestions } from "@/services/ai/questions";
+import { streamObject } from "ai";
+import { insertQuestion } from "@/features/questions/db";
 
 const schema = z.object({
   prompt: z.enum(questionDifficulties),
@@ -41,18 +43,24 @@ export async function POST(req: Request) {
 
   const previousQuestions = await getQuestions(jobInfoId);
 
-  //   TODO: ADD AI PROMPTING LOGIC
-
-  const res = await generateAiQuestions({
+  const stream = await generateAiQuestions({
     previousQuestions,
     jobInfo,
     difficulty,
     onFinish: async (question) => {
       console.log(question, "AI GENERATED QUESTION");
+
+      const { id } = await insertQuestion({
+        text: question,
+        jobInfoId,
+        difficulty,
+      });
+
+      console.log("Question saved with ID:", id);
     },
   });
 
-  return res.toUIMessageStreamResponse();
+  return stream.toUIMessageStreamResponse();
 }
 
 async function getQuestions(jobInfoId: string) {

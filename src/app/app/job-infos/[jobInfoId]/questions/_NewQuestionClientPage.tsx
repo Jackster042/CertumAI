@@ -17,9 +17,10 @@ import {
   QuestionDifficulty,
 } from "@/drizzle/schema";
 import { formatQuestionDifficulty } from "@/features/questions/formatters";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { errorToast } from "@/lib/errorToast";
+import z from "zod";
 
 type Status = "awaiting-answer" | "awaiting-difficulty" | "init";
 
@@ -30,12 +31,8 @@ export function NewQuestionClientPage({
 }) {
   const [status, setStatus] = useState<Status>("init");
   const [answer, setAnswer] = useState<string | null>(null);
+  const [questionId, setQuestionId] = useState<string | null>(null);
 
-  const questionId = null;
-
-  //   TODO: QUESTION & FEEDBACK
-
-  // THIS ALLOWS TO USE STREAMING
   const {
     complete: generateQuestion,
     completion: question,
@@ -46,6 +43,27 @@ export function NewQuestionClientPage({
     api: "/api/ai/questions/generate-question",
     onFinish: () => {
       setStatus("awaiting-answer");
+
+      // Small delay to ensure the database write completes
+      setTimeout(async () => {
+        try {
+          const response = await fetch("/api/ai/questions/get-latest-id", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jobInfoId: jobInfo.id,
+            }),
+          });
+
+          if (response.ok) {
+            const { questionId: id } = await response.json();
+            setQuestionId(id);
+            console.log("Got questionId:", id);
+          }
+        } catch (error) {
+          console.error("Failed to get question ID:", error);
+        }
+      }, 200);
     },
     onError: (error) => {
       errorToast(error.message);
@@ -67,10 +85,22 @@ export function NewQuestionClientPage({
     },
   });
 
-  console.log(status, "status");
-  console.log("QuestionContainer: question", question);
-  console.log("QuestionContainer: isGeneratingQuestion", isGeneratingQuestion);
-  console.log("QuestionContainer: status", status);
+  // const questionId = useMemo(() => {
+  //   console.log("Raw data array:", data); // Add this debug line
+  //   const item = data?.at(-1);
+  //   console.log("Last item:", item); // Add this debug line
+  //   if (item == null) return null;
+  //   const parsed = z.object({ questionId: z.string() }).safeParse(item);
+  //   console.log("Parsed result:", parsed); // Add this debug line
+  //   if (!parsed.success) return null;
+
+  //   return parsed.data.questionId;
+  // }, [data]);
+
+  // console.log(status, "status");
+  // console.log("QuestionContainer: question", question);
+  // console.log("QuestionContainer: isGeneratingQuestion", isGeneratingQuestion);
+  // console.log("QuestionContainer: status", status);
 
   return (
     <div className="flex flex-col items-center gap-4 w-full mx-w-[2000px] mx-auto flex-grow h-screen-header">
@@ -89,7 +119,6 @@ export function NewQuestionClientPage({
           }}
           status={status}
           isLoading={isGeneratingQuestion || isGeneratingFeedback}
-          // TODO:  ADD QUESTION ID LATER
           disableAnswerButton={
             answer == null || answer.trim() === "" || questionId == null
           }
@@ -102,8 +131,8 @@ export function NewQuestionClientPage({
           generateFeedback={() => {
             if (answer == null || answer.trim() === "" || questionId == null)
               return;
-            // TODO: GET QUESTION ID
-            answer?.trim(), { body: { questionId: null } };
+
+            generateFeedback(answer?.trim(), { body: { questionId } });
           }}
         />
         <div className="flex-grow hidden md:block" />
