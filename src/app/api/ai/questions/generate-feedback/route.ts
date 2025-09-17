@@ -2,6 +2,7 @@ import { db } from "@/drizzle/db";
 import { QuestionTable } from "@/drizzle/schema";
 import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
 import { getQuestionIdTag } from "@/features/questions/dbCache";
+import { generateAiQuestionFeedback } from "@/services/ai/questions";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { and, eq } from "drizzle-orm";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
@@ -30,7 +31,12 @@ export async function POST(req: Request) {
       status: 403,
     });
 
-    const res = 
+  const res = generateAiQuestionFeedback({
+    question: question.text,
+    answer,
+  });
+
+  return res.toUIMessageStreamResponse();
 }
 
 async function getQuestion(id: string, userId: string) {
