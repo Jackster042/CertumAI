@@ -10,11 +10,15 @@ import {
 import { LoadingSwap } from "@/components/ui/loading-swap";
 import { cn } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const fileRef = useRef<File | null>(null);
+
   const isLoading = false;
+
+  function handleFileUpload() {}
 
   return (
     <div className="space-y-8 w-full">
@@ -38,6 +42,19 @@ export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
                   ? "border-primary bg-primary/5"
                   : "border-muted-foreground/50 bg-muted/10"
               )}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                // TODO: HANDLE FILE UPLOAD LOGIC
+              }}
             >
               <label htmlFor="resume-upload" className="sr-only">
                 Upload your resume
