@@ -9,7 +9,12 @@ import {
 } from "@/components/ui/card";
 import { LoadingSwap } from "@/components/ui/loading-swap";
 import { cn } from "@/lib/utils";
-import { UploadIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  UploadIcon,
+} from "lucide-react";
 import { ReactNode, useRef, useState } from "react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { aiAnalyzeSchema } from "@/services/ai/resumes/schemas";
@@ -123,7 +128,7 @@ export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
                 type="file"
                 className="opacity-0 absolute inset-0 cursor-pointer"
                 accept=".pdf,.doc,.docx,.txt"
-                onChange={() => {}}
+                onChange={(e) => handleFileUpload(e.target.files?.[0] ?? null)}
               />
 
               <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -262,4 +267,51 @@ function CategoryAccordionHeader({
   );
 }
 
-function FeedbackItem() {}
+function FeedbackItem({
+  message,
+  name,
+  type,
+}: Partial<z.infer<typeof aiAnalyzeSchema>["ats"]["feedback"][number]>) {
+  if (name == null || message == null || type == null) return null;
+
+  const getColors = () => {
+    switch (type) {
+      case "strength":
+        return "bg-primary/10 border border-primary/50";
+      case "major-improvement":
+        return "bg-destructive/10 dark:bg-destructive/20 border border-destructive/50 dark:border-destructive/70";
+      case "minor-improvement":
+        return "bg-warning/10 border border-warning/40";
+      default:
+        throw new Error(`Unknown feedback type: ${type satisfies never} `);
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case "strength":
+        return <CheckCircleIcon className="text-primary size-4" />;
+      case "minor-improvement":
+        return <AlertCircleIcon className="text-warning size-4" />;
+      case "major-improvement":
+        return <XCircleIcon className="size-4 text-destructive" />;
+      default:
+        throw new Error(`Unknown feedback type: ${type satisfies never} `);
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-baseline gap-3 pl-3 pr-5 py-5 rounded-lg",
+        getColors()
+      )}
+    >
+      <div>{getIcon()}</div>
+      <div className="flex flex-col gap-1">
+        <div className="text-base">{name}</div>
+        <div className="text-muted-foreground">{message}</div>
+      </div>
+    </div>
+  );
+}
