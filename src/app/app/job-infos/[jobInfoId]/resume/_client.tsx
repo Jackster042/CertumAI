@@ -10,15 +10,73 @@ import {
 import { LoadingSwap } from "@/components/ui/loading-swap";
 import { cn } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
+import { aiAnalyzeSchema } from "@/services/ai/resumes/schemas";
+import { toast } from "sonner";
+import { DeepPartial } from "ai";
+import z from "zod";
+import { Skeleton } from "@/components/Skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const fileRef = useRef<File | null>(null);
 
-  const isLoading = false;
+  const {
+    object: aiAnalysis,
+    isLoading,
+    submit: generateAiAnalysis,
+  } = useObject({
+    api: "/api/ai/resumes/analyze",
+    schema: aiAnalyzeSchema,
+    fetch: (url, options) => {
+      const headers = new Headers(options?.headers);
+      headers.delete("Content-Type");
 
-  function handleFileUpload() {}
+      const formData = new FormData();
+      if (fileRef.current) {
+        formData.append("resumeFile", fileRef.current);
+      }
+      formData.append("jobInfoId", jobInfoId);
+
+      return fetch(url, {
+        ...options,
+        headers,
+        body: formData,
+      });
+    },
+  });
+
+  function handleFileUpload(file: File | null) {
+    fileRef.current = file;
+    if (file == null) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("FIle extends 100MB limit");
+      return;
+    }
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("File type not supported");
+      return;
+    }
+
+    generateAiAnalysis(null);
+  }
 
   return (
     <div className="space-y-8 w-full">
@@ -54,6 +112,7 @@ export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
                 e.preventDefault();
                 setIsDragOver(false);
                 // TODO: HANDLE FILE UPLOAD LOGIC
+                handleFileUpload(e.dataTransfer.files[0] ?? null);
               }}
             >
               <label htmlFor="resume-upload" className="sr-only">
@@ -66,17 +125,17 @@ export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
                 accept=".pdf,.doc,.docx,.txt"
                 onChange={() => {}}
               />
-            </div>
 
-            <div className="flex flex-col items-center justify-center gap-4 text-center">
-              <UploadIcon className="size-12 text-muted-foreground mt-2" />
-              <div className="space-y-2">
-                <p className="text-lg">
-                  Drop your resume here or click to upload
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Supports formats: PDF,Word docs, and text files
-                </p>
+              <div className="flex flex-col items-center justify-center gap-4 text-center">
+                <UploadIcon className="size-12 text-muted-foreground mt-2" />
+                <div className="space-y-2">
+                  <p className="text-lg">
+                    Drop your resume here or click to upload
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports formats: PDF,Word docs, and text files
+                  </p>
+                </div>
               </div>
             </div>
           </LoadingSwap>
@@ -84,11 +143,123 @@ export function ResumePageClient({ jobInfoId }: { jobInfoId: string }) {
       </Card>
 
       {/* TODO: ANALYZE RESULT COMPONENT */}
-      <AnalyzeResults />
+      <AnalyzeResults aiAnalysis={aiAnalysis} isLoading={isLoading} />
     </div>
   );
 }
 
-function AnalyzeResults() {
-  return <div>Analyze results</div>;
+type Keys = Exclude<keyof z.infer<typeof aiAnalyzeSchema>, "overallScore">;
+
+function AnalyzeResults({
+  aiAnalysis,
+  isLoading,
+}: {
+  aiAnalysis: DeepPartial<z.infer<typeof aiAnalyzeSchema>> | undefined;
+  isLoading: boolean;
+}) {
+  if (!isLoading && aiAnalysis == null) return null;
+
+  const sections: Record<Keys, string> = {
+    ats: "ATS Compatibility",
+    jobMatch: "Job Match",
+    writingAndFormatting: "Writing and Formatting",
+    keywordCoverage: "Keyword Coverage",
+    other: "Additional Insights",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Analysis Results</CardTitle>
+        <CardDescription>
+          {aiAnalysis?.overallScore == null ? (
+            <Skeleton className="w-32" />
+          ) : (
+            `Overall Score: ${aiAnalysis.overallScore}`
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Accordion type="multiple">
+          {Object.entries(sections).map(([key, title]) => {
+            const category = aiAnalysis?.[key as Keys];
+
+            return (
+              <AccordionItem key={key} value={title}>
+                <AccordionTrigger>
+                  <CategoryAccordionHeader
+                    title={title}
+                    score={category?.score ?? 0}
+                  />
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="text-muted-foreground">
+                      {/* SUMMARY */}
+                      {category?.summary == null ? (
+                        <span className="space-y-2">
+                          <Skeleton />
+                          <Skeleton className="w-3/4" />
+                        </span>
+                      ) : (
+                        category.summary
+                      )}
+                    </div>
+
+                    {/* FEEDBACK */}
+                    <div className="space-y-3">
+                      {category?.feedback == null ? (
+                        <>
+                          <Skeleton className="h-16" />
+                          <Skeleton className="h-16" />
+                          <Skeleton className="h-16" />
+                        </>
+                      ) : (
+                        category.feedback.map((item, index) => {
+                          if (item == null) return null;
+
+                          return <FeedbackItem key={index} {...item} />;
+                        })
+                      )}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
 }
+
+function CategoryAccordionHeader({
+  title,
+  score,
+}: {
+  title: string;
+  score: number | undefined | null;
+}) {
+  let badge: ReactNode;
+  if (score == null) {
+    badge = <Skeleton className="w-16" />;
+  } else if (score >= 8) {
+    badge = <Badge>Excellent</Badge>;
+  } else if (score >= 6) {
+    badge = <Badge variant="secondary">OK</Badge>;
+  } else {
+    badge = <Badge variant="destructive">Needs Work</Badge>;
+  }
+
+  return (
+    <div className="flex items-start justify-between w-full">
+      <div className="flex flex-col items-start gap-1">
+        <span>{title}</span>
+        <div className="no-underline">{badge}</div>
+      </div>
+      {score == null ? <Skeleton className="w-12" /> : `${score / 10}`}
+    </div>
+  );
+}
+
+function FeedbackItem() {}
