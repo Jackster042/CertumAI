@@ -262,7 +262,7 @@ function CategoryAccordionHeader({
         <span>{title}</span>
         <div className="no-underline">{badge}</div>
       </div>
-      {score == null ? <Skeleton className="w-12" /> : `${score / 10}`}
+      {score == null ? <Skeleton className="w-12" /> : `${score}`}
     </div>
   );
 }
