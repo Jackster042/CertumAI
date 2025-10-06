@@ -8,14 +8,7 @@ export default function HomePage() {
   // console.log(env.DATABASE_URL);
   return (
     <>
-      <div className="p-4 space-y-4">
-        <div className="flex items-center gap-4">
-          <SignInButton />
-          <UserButton />
-          <ThemeToggle />
-        </div>
-        <PricingTable />
-      </div>
+     
     </>
   );
 }
