@@ -12,7 +12,7 @@ import { JobInfoForm } from "@/features/jobInfos/components/JobInfoForm";
 import { getJobInfoUserTag } from "@/features/jobInfos/dbCache";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { desc, eq } from "drizzle-orm";
-import { ArrowRightIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { ArrowRightIcon, Loader2Icon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";

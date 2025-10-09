@@ -13,7 +13,6 @@ import { and, asc, eq } from "drizzle-orm";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { z } from "zod";
 import { generateAiQuestions } from "@/services/ai/questions";
-import { streamObject } from "ai";
 import { insertQuestion } from "@/features/questions/db";
 
 const schema = z.object({

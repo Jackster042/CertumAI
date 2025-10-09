@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { ClerkProvider as OriginalClerkProvider } from "@clerk/nextjs";
 import { buttonVariants } from "@/components/ui/button";
 

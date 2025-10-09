@@ -32,7 +32,6 @@ export function StartCall({
 
   const {
     connect,
-    disconnect,
     readyState,
     chatMetadata,
     callDurationTimestamp,

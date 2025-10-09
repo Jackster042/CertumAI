@@ -1,6 +1,6 @@
 import { JobInfoBackLink } from "@/features/jobInfos/components/JobInfoBackLink";
 import { Suspense } from "react";
-import { ArrowRightIcon, Loader2, Loader2Icon, PlusIcon } from "lucide-react";
+import { ArrowRightIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { getJobInfoIdTag } from "@/features/jobInfos/dbCache";
 import { getInterviewJobInfoTag } from "@/features/interviews/dbCache";

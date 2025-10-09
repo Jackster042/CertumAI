@@ -17,10 +17,9 @@ import {
   QuestionDifficulty,
 } from "@/drizzle/schema";
 import { formatQuestionDifficulty } from "@/features/questions/formatters";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { errorToast } from "@/lib/errorToast";
-import z from "zod";
 
 type Status = "awaiting-answer" | "awaiting-difficulty" | "init";
 
@@ -84,23 +83,6 @@ export function NewQuestionClientPage({
       errorToast(error.message);
     },
   });
-
-  // const questionId = useMemo(() => {
-  //   console.log("Raw data array:", data); // Add this debug line
-  //   const item = data?.at(-1);
-  //   console.log("Last item:", item); // Add this debug line
-  //   if (item == null) return null;
-  //   const parsed = z.object({ questionId: z.string() }).safeParse(item);
-  //   console.log("Parsed result:", parsed); // Add this debug line
-  //   if (!parsed.success) return null;
-
-  //   return parsed.data.questionId;
-  // }, [data]);
-
-  // console.log(status, "status");
-  // console.log("QuestionContainer: question", question);
-  // console.log("QuestionContainer: isGeneratingQuestion", isGeneratingQuestion);
-  // console.log("QuestionContainer: status", status);
 
   return (
     <div className="flex flex-col items-center gap-4 w-full mx-w-[2000px] mx-auto flex-grow h-screen-header">

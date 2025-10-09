@@ -2,7 +2,7 @@ import { db } from "@/drizzle/db";
 import { JobInfoTable, QuestionTable } from "@/drizzle/schema";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { hasPermission } from "@/services/clerk/lib/hasPermission";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 
 export async function canCreateQuestion() {
   return await Promise.any([
