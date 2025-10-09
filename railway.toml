@@ -1,0 +1,10 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+numReplicas = 1
+sleepOnScale = true
+restartPolicyType = "ON_FAILURE"
+
+[environments.production.variables]
+NODE_ENV = "production"

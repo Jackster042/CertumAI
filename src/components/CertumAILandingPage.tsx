@@ -14,7 +14,6 @@ import {
   Search,
   ArrowRight,
   Sparkles,
-  Loader2Icon,
   BrainCircuitIcon,
   Clock,
   Target,
@@ -362,7 +361,7 @@ function DetailedFeaturesSection() {
                     {/* Render different visual types based on feature */}
                     {feature.icon === MessageSquare && (
                       <div className="space-y-4">
-                        {feature.visual.content.map((msg: any, msgIndex: number) => (
+                        {(feature.visual.content as any[]).map((msg: { speaker: string; message: string; time: string; feedback?: string }, msgIndex: number) => (
                           <div key={msgIndex} className={`flex ${
                             msg.speaker === 'You' ? 'justify-end' : 'justify-start'
                           }`}>
@@ -388,7 +387,7 @@ function DetailedFeaturesSection() {
                     
                     {feature.icon === FileText && (
                       <div className="space-y-4">
-                        {feature.visual.content.map((item: any, itemIndex: number) => (
+                        {(feature.visual.content as any[]).map((item: { section: string; score: number; suggestion: string }, itemIndex: number) => (
                           <div key={itemIndex} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                             <div>
                               <div className="font-medium text-foreground">{item.section}</div>
@@ -413,7 +412,7 @@ function DetailedFeaturesSection() {
                     
                     {feature.icon === Search && (
                       <div className="space-y-4">
-                        {feature.visual.content.map((category: any, catIndex: number) => (
+                        {(feature.visual.content as any[]).map((category: { category: string; items: string[] }, catIndex: number) => (
                           <div key={catIndex}>
                             <h5 className="font-medium text-foreground mb-2">{category.category}</h5>
                             <div className="flex flex-wrap gap-2">
@@ -610,7 +609,7 @@ function TestimonialsSection() {
                 </div>
 
                 <blockquote className="text-muted-foreground mb-6 leading-relaxed">
-                  "{testimonial.content}"
+                  &ldquo;{testimonial.content}&rdquo;
                 </blockquote>
 
                 <div className="flex items-center space-x-3">
