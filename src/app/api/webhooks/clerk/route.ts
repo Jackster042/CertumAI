@@ -1,17 +1,25 @@
 import { deleteUser, upsertUser } from "@/features/users/db";
-import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import { Webhook } from "svix";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const event = await verifyWebhook(request);
+    const payload = await request.text();
+    const headers = {
+      'svix-id': request.headers.get('svix-id') || '',
+      'svix-timestamp': request.headers.get('svix-timestamp') || '',
+      'svix-signature': request.headers.get('svix-signature') || '',
+    };
+
+    const webhook = new Webhook(process.env.CLERK_WEBHOOK_SIGNING_SECRET!);
+    const event = webhook.verify(payload, headers) as any;
 
     switch (event.type) {
       case "user.created":
       case "user.updated":
         const clerkData = event.data;
         const email = clerkData.email_addresses.find(
-          (e) => e.id === clerkData.primary_email_address_id
+          (e: any) => e.id === clerkData.primary_email_address_id
         )?.email_address;
         if (email == null) {
           return new Response("No primary email found", { status: 400 });
