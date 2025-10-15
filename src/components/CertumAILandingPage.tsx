@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,10 +23,9 @@ import {
   CheckCircle,
   BarChart,
 } from "lucide-react";
-import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { SignInButton } from "@clerk/nextjs";
-import Link from "next/link";
 import { PricingTable } from "@/services/clerk/components/PricingTable";
+import NavButtonWrapper from "./NavButtonWrapper";
 
 const features = [
   {
@@ -95,15 +94,7 @@ function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Suspense
-              fallback={
-                <SignInButton forceRedirectUrl={"/app"}>
-                  <Button variant="outline">Sign in</Button>
-                </SignInButton>
-              }
-            >
-              <NavButton />
-            </Suspense>
+            <NavButtonWrapper />
           </div>
         </div>
       </div>
@@ -111,23 +102,6 @@ function Navbar() {
   );
 }
 
-async function NavButton() {
-  const { userId } = await getCurrentUser();
-
-  if (userId == null) {
-    return (
-      <SignInButton forceRedirectUrl={"/app"}>
-        <Button variant="outline">Sign in</Button>
-      </SignInButton>
-    );
-  }
-
-  return (
-    <Button asChild>
-      <Link href="/app">Dashboard</Link>
-    </Button>
-  );
-}
 
 function HeroSection() {
   return (
@@ -150,13 +124,15 @@ function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="px-8 py-3 text-base font-semibold group"
-            >
-              Get Started for Free
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <SignInButton forceRedirectUrl="/app">
+              <Button
+                size="lg"
+                className="px-8 py-3 text-base font-semibold group"
+              >
+                Get Started for Free
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </SignInButton>
           </div>
         </div>
       </div>
@@ -725,10 +701,12 @@ function CTASection() {
             Join thousands of professionals who have successfully landed their
             dream jobs with CertumAI.
           </p>
-          <Button size="lg" className="px-8 py-3 text-base font-semibold group">
-            Start Your Free Trial
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <SignInButton forceRedirectUrl="/app">
+            <Button size="lg" className="px-8 py-3 text-base font-semibold group">
+              Start Your Free Trial
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </SignInButton>
         </div>
       </div>
     </section>
